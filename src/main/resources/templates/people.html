@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content=""/>
+<meta name="author" content=""/>
+<title>人员信息</title>
+
+<!-- Bootstrap core CSS -->
+<link th:href="@{css/bootstrap.css}" rel="stylesheet"/>
+
+
+<!-- Custom styles for this template -->
+<link th:href="@{css/main.css}" rel="stylesheet"/>
+
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script th:src="@{js/hover.zoom.js}"></script>
+<script th:src="@{js/hover.zoom.conf.js}"></script>
+</head>
+<body>
+<!-- Static navbar -->
+    <div class="navbar navbar-inverse navbar-static-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index">点数平台配置管理系统</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="index">首页</a></li>
+            <li><a href="enviroment">环境信息</a></li>
+            <li><a href="people">人员信息</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+	
+	
+	<!-- +++++ Projects Section +++++ -->
+	
+	<div class="container pt">
+		<button type="button" class="btn btn-default" data-toggle="modal" onclick="openDialog()" style="margin-bottom: 20px;">新增</button>
+		<div class="table-responsive">
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>序号</th>
+						<th>姓名</th>
+						<th>联系方式</th>
+						<th>邮箱</th>
+						<th>职位</th>
+						<th>所属公司</th>
+						<th>城市</th>
+						<th>备注</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="peolist">
+				</tbody>
+			</table>
+		</div>
+	</div><!-- /container -->
+	
+	<div class="modal fade" id="addPeople" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">新增人员信息</h4>
+            </div>
+            <div class="modal-body">
+            <form role="form" id="peopleForm">
+              <input type="hidden" name="id" id="id"/>
+			  <div class="form-group">
+			    <label for="name">姓名</label>
+			    <input type="text" class="form-control" id="name" name="name"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="tel">联系方式</label>
+			    <input type="text" class="form-control" id="tel" name="tel"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="email">邮箱</label>
+			    <input type="text" class="form-control" id="email" name="email"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="position">职位</label>
+			    <input type="text" class="form-control" id="position" name="position"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="company">所属公司</label>
+			    <input type="text" class="form-control" id="company" name="company"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="city">城市</label>
+			    <input type="text" class="form-control" id="city" name="city"/>
+			  </div>
+			  <div class="form-group">
+			    <label for="remark">备注</label>
+			    <input type="text" class="form-control" id="remark" name="remark"/>
+			  </div>
+			</form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" onclick="$('#addPeople').modal('hide')">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="savePeople();">提交</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+	
+    <script th:src="@{js/bootstrap.min.js}"></script>
+    <script type="text/javascript">
+    queryPeopleList();
+	function queryPeopleList () {
+		$.ajax({
+			type:'get',
+			dataType:'json',
+			url:'peopleList',
+			success:function(data) {
+				var listHtml = "";
+				$.each(data,function(i){
+					listHtml += '<tr><td>'+data[i].id+'</td><td>'+data[i].name+'</td><td>'+data[i].tel+
+					'</td><td>'+data[i].email+'</td><td>'+data[i].position+'</td><td>'+data[i].company+
+					'<td>'+data[i].city+'</td><td>'+data[i].remark+'</td></td><td><a href="javascript:getDetail('
+							+data[i].id+')">修改</a>'+
+					'&nbsp;&nbsp;<a href="javascript:deletePeople('+data[i].id+')">删除</a></td></tr>';
+				});
+				$("#peolist").html(listHtml);
+			}
+		});
+	}
+	
+	function savePeople() {
+		$.ajax({
+			type:'post',
+			dataType:'json',
+			url:'savePeople',
+			data:$("#peopleForm").serialize(),
+			success:function(data) {
+				if (data) {
+					queryPeopleList();
+					$('#addPeople').modal('hide');
+				}
+			}
+		});
+	}
+	
+	function getDetail(id) {
+		$.ajax({
+			type:'get',
+			dataType:'json',
+			url:'getPeopleDetail?id='+id,
+			success:function(data) {
+				$("#id").val(data.id);
+				$("#name").val(data.name);
+				$("#tel").val(data.tel);
+				$("#email").val(data.email);
+				$("#position").val(data.position);
+				$("#company").val(data.company);
+				$("#city").val(data.city);
+				$("#remark").val(data.remark);
+				$('#addPeople').modal('show');
+			}
+		});
+	}
+	
+	function deletePeople(id) {
+		$.ajax({
+			type:'get',
+			dataType:'json',
+			url:'deletePeople?id='+id,
+			success:function(data) {
+				if (data) {
+					queryPeopleList();
+				}
+			}
+		});
+	}
+	
+	function openDialog () {
+		$("#peopleForm")[0].reset();
+		$('#addPeople').modal('show');
+	}
+    </script>
+</body>
+</html>
